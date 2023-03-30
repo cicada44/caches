@@ -7,8 +7,6 @@
 
 #include <fstream>
 
-#include <unistd.h>
-
 int retSame(int key)
 {
     return key;
@@ -152,12 +150,17 @@ TEST(Cache2Q, CountOfHitTest)
 
     auto start = expectedNHits.begin();
     for (int j = 0; j != 100; ++j) {
-        std::fstream ifs(
-                std::string("/home/cicada44/cicada-main/edu/minor-projects/"
-                            "cache/test/"
-                            "dats/")
-                + std::to_string(j) + std::string(".txt"));
+        std::fstream ifs;
+        
+#if defined(__linux__)
+        ifs.open(std::string("../../../test/dats/") + std::to_string(j) + std::string(".txt"));
+
+#elif _WIN32
+        ifs.open(std::string("..\\..\\..\\test\\dats\\") + std::to_string(j) + std::string(".txt"));
+
         ASSERT_EQ(run_test(ifs, std::cout), *start++);
+#endif
+
     }
 }
 
