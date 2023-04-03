@@ -118,4 +118,44 @@ struct cache_t {
     }
 };
 
+template <typename T, typename KeyT = int>
+struct idealCache {
+    using ListIt = typename std::list<std::pair<KeyT, T>>::iterator;
+
+    size_t sz_;
+    std::list<std::pair<KeyT, T>> cache_;
+    std::unordered_map<KeyT, ListIt> hash_;
+
+    idealCache(const size_t sz) : sz_(sz)
+    {
+    }
+
+    size_t size() const
+    {
+        return sz_;
+    }
+
+    bool full() const
+    {
+        return (cache_.size() == sz_);
+    }
+
+    template <typename F>
+    bool lookup_update(KeyT key, F slow_get_page)
+    {
+        if (sz_ == 0) {
+            return 0;
+        }
+
+        auto hit = hash_.find(key);
+        if (hit == hash_.end()) {
+            cache_.emplace_front(key, slow_get_page(key));
+            hash_.emplace(key, cache_.begin());
+            return false;
+        }
+
+        return true;
+    }
+};
+
 } // namespace caches
