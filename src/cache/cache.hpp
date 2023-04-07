@@ -1,8 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <iostream>
 #include <iterator>
 #include <list>
+#include <map>
 #include <queue>
 #include <unordered_map>
 #include <vector>
@@ -120,11 +122,11 @@ struct cache_t {
 
 template <typename T, typename KeyT = int>
 struct idealCache {
-    using ListIt = typename std::list<std::pair<KeyT, T>>::iterator;
+    std::vector<KeyT> cache_;
 
     size_t sz_;
-    std::list<std::pair<KeyT, T>> cache_;
-    std::unordered_map<KeyT, ListIt> hash_;
+
+    std::map<size_t, KeyT> usage_;
 
     idealCache(const size_t sz) : sz_(sz)
     {
@@ -140,21 +142,47 @@ struct idealCache {
         return (cache_.size() == sz_);
     }
 
-    template <typename F>
-    bool lookup_update(KeyT key, F slow_get_page)
+    void fill_usage(const std::vector<KeyT>& keys)
     {
-        if (sz_ == 0) {
-            return 0;
+        for (auto i = keys.begin(); i != keys.end(); ++i) {
+            usage_.emplace(
+                    std::pair(std::count(keys.begin(), keys.end(), *i), *i));
         }
 
-        auto hit = hash_.find(key);
-        if (hit == hash_.end()) {
-            cache_.emplace_front(key, slow_get_page(key));
-            hash_.emplace(key, cache_.begin());
-            return false;
+        for (auto i = usage_.rbegin(); i != usage_.rend(); ++i) {
+            std::cout << "usage: " << i->first << " key: " << i->second << '\n';
+        }
+    }
+
+    template <typename F>
+    size_t lookup_update(const std::vector<KeyT>& keys, F slow_get_page)
+    {
+        usage_.clear();
+        cache_.clear();
+
+        fill_usage(keys);
+
+        size_t inputEls = (keys.size() < sz_) ? keys.size() : sz_;
+        size_t hits = 0;
+        auto usageIt = usage_.rbegin();
+        for (size_t i = 0; i != inputEls; ++i) {
+            cache_.push_back((usageIt++)->second);
         }
 
-        return true;
+        std::cout << "inputEls: " << inputEls << " size - " << cache_.size()
+                  << '\n';
+
+        for (const auto& c : cache_) {
+            std::cout << c << '\n';
+        }
+
+        for (const auto& c : keys) {
+            if (std::find(cache_.begin(), cache_.end(), c) != cache_.end()) {
+                ++hits;
+            }
+        }
+
+        return hits;
     }
 };
 

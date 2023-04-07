@@ -151,16 +151,18 @@ TEST(Cache2Q, CountOfHitTest)
     auto start = expectedNHits.begin();
     for (int j = 0; j != 100; ++j) {
         std::fstream ifs;
-        
+
 #if defined(__linux__)
-        ifs.open(std::string("../../../test/dats/") + std::to_string(j) + std::string(".txt"));
-
+        ifs.open(
+                std::string("../../../test/dats/") + std::to_string(j)
+                + std::string(".txt"));
 #elif _WIN32
-        ifs.open(std::string("..\\..\\..\\test\\dats\\") + std::to_string(j) + std::string(".txt"));
-
-        ASSERT_EQ(run_test(ifs, std::cout), *start++);
+        ifs.open(
+                std::string("..\\..\\..\\test\\dats\\") + std::to_string(j)
+                + std::string(".txt"));
 #endif
 
+        ASSERT_EQ(run_test(ifs, std::cout), *start++);
     }
 }
 
