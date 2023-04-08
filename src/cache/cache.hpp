@@ -166,22 +166,19 @@ struct idealCache {
                 [](const std::pair<T, KeyT>& p1, const std::pair<T, KeyT>& p2)
                         -> bool { return (p1.second > p2.second); });
 
-        for (const auto& [key, value] : vec) {
-            std::cout << key << " : " << value << '\n';
-        }
-
         size_t inputEls = (keys.size() < sz_) ? keys.size() : sz_;
         size_t hits = 0;
         for (size_t i = 0; i != inputEls; ++i) {
             cache_.push_back(vec[i].first);
         }
+
         for (const auto& c : keys) {
             if (std::find(cache_.begin(), cache_.end(), c) != cache_.end()) {
                 ++hits;
             }
         }
 
-        return hits;
+        return hits - inputEls;
     }
 };
 
