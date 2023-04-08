@@ -123,10 +123,9 @@ struct cache_t {
 template <typename T, typename KeyT = int>
 struct idealCache {
     std::vector<KeyT> cache_;
+    std::map<KeyT, T> usage_;
 
     size_t sz_;
-
-    std::map<size_t, KeyT> usage_;
 
     idealCache(const size_t sz) : sz_(sz)
     {
@@ -146,36 +145,36 @@ struct idealCache {
     {
         for (auto i = keys.begin(); i != keys.end(); ++i) {
             usage_.emplace(
-                    std::pair(std::count(keys.begin(), keys.end(), *i), *i));
-        }
-
-        for (auto i = usage_.rbegin(); i != usage_.rend(); ++i) {
-            std::cout << "usage: " << i->first << " key: " << i->second << '\n';
+                    std::pair(*i, std::count(keys.begin(), keys.end(), *i)));
         }
     }
 
     template <typename F>
-    size_t lookup_update(const std::vector<KeyT>& keys, F slow_get_page)
+    size_t lookup_update(
+            const std::vector<KeyT>& keys, [[maybe_unused]] F slow_get_page)
     {
         usage_.clear();
         cache_.clear();
 
         fill_usage(keys);
 
+        std::vector<std::pair<T, KeyT>> vec(usage_.begin(), usage_.end());
+
+        std::sort(
+                vec.begin(),
+                vec.end(),
+                [](const std::pair<T, KeyT>& p1, const std::pair<T, KeyT>& p2)
+                        -> bool { return (p1.second > p2.second); });
+
+        for (const auto& [key, value] : vec) {
+            std::cout << key << " : " << value << '\n';
+        }
+
         size_t inputEls = (keys.size() < sz_) ? keys.size() : sz_;
         size_t hits = 0;
-        auto usageIt = usage_.rbegin();
         for (size_t i = 0; i != inputEls; ++i) {
-            cache_.push_back((usageIt++)->second);
+            cache_.push_back(vec[i].first);
         }
-
-        std::cout << "inputEls: " << inputEls << " size - " << cache_.size()
-                  << '\n';
-
-        for (const auto& c : cache_) {
-            std::cout << c << '\n';
-        }
-
         for (const auto& c : keys) {
             if (std::find(cache_.begin(), cache_.end(), c) != cache_.end()) {
                 ++hits;

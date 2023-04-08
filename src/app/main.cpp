@@ -3,6 +3,8 @@
 #include <cassert>
 #include <iostream>
 
+#include <fstream>
+
 int ret(int key)
 {
     return key;

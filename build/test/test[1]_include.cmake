@@ -1,0 +1,5 @@
+if(EXISTS "/home/cicada44/cicada-main/edu/caches/build/test/test[1]_tests.cmake")
+  include("/home/cicada44/cicada-main/edu/caches/build/test/test[1]_tests.cmake")
+else()
+  add_test(test_NOT_BUILT test_NOT_BUILT)
+endif()
