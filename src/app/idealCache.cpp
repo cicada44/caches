@@ -1,16 +1,12 @@
-#include "../cache/cache.hpp"
-
 #include <cassert>
 #include <iostream>
 #include <vector>
 
-int ret(int key)
-{
-    return key;
-}
+#include "../cache/cache.hpp"
 
-int main()
-{
+int ret(int key) { return key; }
+
+int main() {
     unsigned size, elCnt;
 
     std::cin >> size >> elCnt;
@@ -26,7 +22,5 @@ int main()
         insertable.push_back(insertable_tmp);
     }
 
-    size_t hits = cache.lookup_update(insertable, ret);
-
-    std::cout << hits << '\n';
+    std::cout << cache.lookup_update(insertable, ret) << '\n';
 }

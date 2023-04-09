@@ -1,19 +1,15 @@
-#include "../src/cache/cache.hpp"
-
 #include <gtest/gtest.h>
 
 #include <algorithm>
-#include <iostream>
-
 #include <fstream>
+#include <iostream>
+#include <numeric>
 
-int retSame(int key)
-{
-    return key;
-}
+#include "../src/cache/cache.hpp"
 
-void print_2q(const caches::cache_t<int>& c)
-{
+int retSame(int key) { return key; }
+
+void print_2q(const caches::cache_t<int>& c) {
     std::cout << "IN\n";
     for (auto i = c.in_cache_.begin(); i != c.in_cache_.end(); ++i) {
         std::cout << i->first << ' ';
@@ -31,8 +27,7 @@ void print_2q(const caches::cache_t<int>& c)
     std::cout << '\n';
 }
 
-TEST(Cache, Cache2Q_0)
-{
+TEST(Cache, Cache2Q_0) {
     caches::cache_t<int> cache(10);
 
     ASSERT_EQ(cache.in_sz_, 10);
@@ -59,8 +54,7 @@ TEST(Cache, Cache2Q_0)
     ASSERT_EQ(cache.hot_cache_.empty(), true);
 }
 
-TEST(Cache, Cache2Q_1)
-{
+TEST(Cache, Cache2Q_1) {
     caches::cache_t<int> cache(5);
 
     ASSERT_EQ(cache.in_sz_, 5);
@@ -95,8 +89,7 @@ TEST(Cache, Cache2Q_1)
     ASSERT_EQ(cache.hot_cache_.empty(), true);
 }
 
-TEST(Cache, Cache2Q_2)
-{
+TEST(Cache, Cache2Q_2) {
     caches::cache_t<int> cache(0);
 
     ASSERT_EQ(cache.in_cache_.empty(), true);
@@ -117,8 +110,7 @@ TEST(Cache, Cache2Q_2)
 }
 
 /* Returns number of hits. */
-size_t run_test(std::istream& is, std::ostream& os)
-{
+size_t run_test(std::istream& is) {
     size_t cache_size;
     is >> cache_size;
 
@@ -138,8 +130,7 @@ size_t run_test(std::istream& is, std::ostream& os)
     return num_hits;
 }
 
-size_t run_test_ideal(std::istream& is, std::ostream& os)
-{
+size_t run_test_ideal(std::istream& is) {
     size_t cache_size;
     is >> cache_size;
 
@@ -161,66 +152,53 @@ size_t run_test_ideal(std::istream& is, std::ostream& os)
     return cache.lookup_update(elems, retSame);
 }
 
-TEST(Cache2Q, CountOfHitTest)
-{
+TEST(Cache2Q, CountOfHitTest) {
     std::vector<int> expectedNHits{
-            24, 6,  12, 11, 20, 9,  24, 16, 3,  1,  19, 29, 7,  18, 0,  2,  19,
-            17, 14, 10, 10, 18, 12, 21, 14, 7,  15, 2,  17, 6,  2,  4,  12, 11,
-            6,  11, 17, 16, 2,  13, 10, 0,  10, 5,  7,  5,  26, 10, 17, 0,  8,
-            11, 3,  15, 17, 18, 10, 3,  2,  7,  10, 3,  11, 10, 7,  26, 10, 0,
-            22, 4,  0,  7,  14, 25, 16, 9,  23, 0,  2,  0,  12, 5,  2,  15, 3,
-            18, 0,  7,  2,  1,  26, 4,  17, 0,  4,  20, 11, 0,  0,  10};
+        24, 6,  12, 11, 20, 9,  24, 16, 3,  1, 19, 29, 7,  18, 0,  2,  19, 17, 14, 10,
+        10, 18, 12, 21, 14, 7,  15, 2,  17, 6, 2,  4,  12, 11, 6,  11, 17, 16, 2,  13,
+        10, 0,  10, 5,  7,  5,  26, 10, 17, 0, 8,  11, 3,  15, 17, 18, 10, 3,  2,  7,
+        10, 3,  11, 10, 7,  26, 10, 0,  22, 4, 0,  7,  14, 25, 16, 9,  23, 0,  2,  0,
+        12, 5,  2,  15, 3,  18, 0,  7,  2,  1, 26, 4,  17, 0,  4,  20, 11, 0,  0,  10};
 
     auto start = expectedNHits.begin();
     for (int j = 0; j != 100; ++j) {
         std::ifstream ifs;
 
 #if defined(__linux__)
-        ifs.open(
-                std::string("test/dats/") + std::to_string(j)
-                + std::string(".txt"));
+        ifs.open(std::string("test/dats/") + std::to_string(j) + std::string(".txt"));
 #elif _WIN32
-        ifs.open(
-                std::string("..\\..\\test\\dats\\") + std::to_string(j)
-                + std::string(".txt"));
+        ifs.open(std::string("..\\..\\test\\dats\\") + std::to_string(j) + std::string(".txt"));
 #endif
         ASSERT_EQ(ifs.is_open(), true);
 
-        ASSERT_EQ(run_test(ifs, std::cout), *start++);
+        ASSERT_EQ(run_test(ifs), *start++);
     }
 }
 
-TEST(CacheIdeal, CountOfHitTest)
-{
+TEST(CacheIdeal, CountOfHitTest) {
     std::vector<int> expectedNHits{
-            40, 18, 27, 26, 35, 26, 44, 28, 18, 13, 29, 51, 21, 32, 2,  14, 40,
-            35, 30, 26, 25, 30, 28, 31, 32, 19, 33, 17, 38, 23, 15, 22, 28, 26,
-            18, 30, 30, 36, 15, 25, 29, 11, 23, 19, 22, 15, 37, 27, 36, 2,  26,
-            27, 20, 29, 32, 32, 27, 15, 12, 19, 29, 18, 26, 27, 25, 41, 25, 1,
-            45, 14, 0,  20, 29, 36, 27, 21, 39, 19, 15, 10, 25, 21, 16, 28, 16,
-            35, 10, 22, 18, 5,  34, 14, 40, 9,  23, 33, 26, 1,  5,  23};
+        21, 6,  12, 11, 21, 11, 26, 15, 3,  1, 18, 33, 7,  18, 0,  2,  23, 19, 17, 12,
+        15, 18, 12, 21, 19, 9,  19, 2,  19, 7, 2,  4,  16, 12, 8,  11, 19, 20, 2,  13,
+        11, 0,  12, 5,  7,  5,  24, 10, 20, 0, 12, 11, 3,  16, 22, 19, 10, 3,  2,  7,
+        10, 3,  12, 10, 7,  24, 10, 0,  28, 4, 0,  7,  16, 22, 16, 11, 21, 0,  2,  0,
+        15, 5,  2,  17, 3,  22, 0,  7,  2,  1, 22, 4,  22, 0,  4,  22, 11, 0,  0,  10};
 
     auto start = expectedNHits.begin();
     for (int j = 0; j != 100; ++j) {
         std::ifstream ifs;
 
 #if defined(__linux__)
-        ifs.open(
-                std::string("test/dats/") + std::to_string(j)
-                + std::string(".txt"));
+        ifs.open(std::string("test/dats/") + std::to_string(j) + std::string(".txt"));
 #elif _WIN32
-        ifs.open(
-                std::string("test\\dats\\") + std::to_string(j)
-                + std::string(".txt"));
+        ifs.open(std::string("test\\dats\\") + std::to_string(j) + std::string(".txt"));
 #endif
         ASSERT_EQ(ifs.is_open(), true);
 
-        std::cout << run_test_ideal(ifs, std::cout) << '\n';
+        ASSERT_EQ(run_test_ideal(ifs), *start++);
     }
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
