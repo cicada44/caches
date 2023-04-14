@@ -1,11 +1,12 @@
 #pragma once
 
+#include <unistd.h>
+
 #include <algorithm>
 #include <iostream>
 #include <iterator>
 #include <list>
 #include <map>
-#include <queue>
 #include <unordered_map>
 #include <vector>
 
@@ -50,8 +51,7 @@ struct cache_t {
         }
 
         auto eltit = hit->second;
-        if (eltit != hot_cache_.begin())
-            hot_cache_.splice(hot_cache_.begin(), hot_cache_, eltit, std::next(eltit));
+        if (eltit != hot_cache_.begin()) hot_cache_.splice(hot_cache_.begin(), hot_cache_, eltit, std::next(eltit));
         return true;
     }
 
@@ -102,8 +102,12 @@ struct cache_t {
 
 template <typename T, typename KeyT = int>
 struct idealCache {
+    using vecIt = typename std::vector<std::pair<KeyT, T>>::iterator;
+    using mapIt = typename std::map<vecIt, size_t>::iterator;
+    using elemRange = typename std::pair<vecIt, size_t>;
+
     std::vector<std::pair<KeyT, T>> cache_;
-    std::map<KeyT, T> usage_;
+    std::map<KeyT, size_t> ranges_;
 
     size_t sz_;
 
@@ -113,59 +117,69 @@ struct idealCache {
 
     bool full() const { return (cache_.size() == sz_); }
 
-    void fill_usage(const std::vector<KeyT>& keys) {
-        for (auto i = keys.begin(); i != keys.end(); ++i) {
-            usage_.emplace(std::pair(*i, std::count(keys.begin(), keys.end(), *i)));
+    void print_cache() {
+        std::cout << "CACHE\n";
+        for (const auto &c : cache_) {
+            std::cout << c.first << ' ';
+        }
+        std::cout << "\n\n";
+    }
+
+    void print_usage() {
+        std::cout << "RANGES\n";
+        for (const auto &c : ranges_) {
+            std::cout << c.first->first << " : " << c.second << '\n';
         }
     }
 
-    size_t get_hits(const std::vector<KeyT>& keys) {
-        size_t hits = 0;
+    template <typename F>
+    void replace(KeyT replaceableRange, const KeyT &insertableElem, const size_t insertableRange, F slow_get_page) {
+        ranges_.erase(replaceableRange);
+        cache_.erase(replaceableRange->first);
+        cache_.push_back(std::make_pair(insertableElem, slow_get_page(insertableElem)));
+        ranges_.insert(std::make_pair(std::prev(cache_.end()), insertableRange));
+    }
 
-        for (const auto& c : keys) {
-            if (std::find_if(cache_.begin(), cache_.end(), [&c](std::pair<KeyT, T>& pair) {
-                    return (pair.first == c);
-                }) != cache_.end()) {
+    template <typename F>
+    size_t lookup_update(const std::vector<KeyT> &keys, F slow_get_page) {
+        size_t hits = 0;
+        mapIt replaceable;
+        mapIt insertable;
+        size_t tmpDist;
+
+        for (auto i = keys.begin(); i != keys.end(); ++i) {
+            system("clear");
+
+            if (std::find_if(cache_.begin(), cache_.end(), [&i](const std::pair<KeyT, T> p) { return (p.first == *i); }) == cache_.end()) {
+                tmpDist = std::distance(i, std::find(std::next(i), keys.end(), *i));
+                // std::cout << "TMP_DIST - " << tmpDist << '\n';
+                if (full()) {
+                    replaceable = std::min_element(ranges_.begin(), ranges_.end(),
+                                                   [](const elemRange &p1, const elemRange &p2) { return (p1.second < p2.second); });
+                    if (replaceable->second > tmpDist) {
+                        replace(replaceable, *i, tmpDist, slow_get_page);
+                    }
+                } else {
+                    cache_.push_back(std::make_pair(*i, slow_get_page(*i)));
+                    ranges_.insert(std::make_pair(std::prev(cache_.end()), tmpDist));
+                }
+            } else {
+                for (auto &c : ranges_) {
+                    --c.second;
+                }
                 ++hits;
+                std::cout << "HIT IN " << *i << '\n';
             }
+
+            std::cout << "inserting - " << *i << '\n';
+            print_cache();
+            print_usage();
+            std::cout << "\n\nHITS - " << hits << '\n';
+
+            sleep(1);
         }
 
         return hits;
-    }
-
-    void sort_by_values(std::vector<std::pair<T, KeyT>>& vec) {
-        std::sort(vec.begin(), vec.end(),
-                  [](const std::pair<T, KeyT>& p1, const std::pair<T, KeyT>& p2) -> bool {
-                      return (p1.second > p2.second);
-                  });
-    }
-
-    void clear() {
-        usage_.clear();
-        cache_.clear();
-    }
-
-    template <typename F>
-    void fill_cache(size_t inputEls, const std::vector<std::pair<T, KeyT>>& sorted_usage,
-                    F slow_get_page) {
-        for (size_t i = 0; i != inputEls; ++i) {
-            cache_.push_back(
-                std::pair<KeyT, T>(sorted_usage[i].first, slow_get_page(sorted_usage[i].first)));
-        }
-    }
-
-    template <typename F>
-    size_t lookup_update(const std::vector<KeyT>& keys, F slow_get_page) {
-        clear();
-        fill_usage(keys);
-
-        std::vector<std::pair<T, KeyT>> sorted_usage(usage_.begin(), usage_.end());
-        sort_by_values(sorted_usage);
-
-        size_t inputEls = (sorted_usage.size() < sz_) ? sorted_usage.size() : sz_;
-        fill_cache(inputEls, sorted_usage, slow_get_page);
-
-        return (get_hits(keys) - inputEls);
     }
 };
 
