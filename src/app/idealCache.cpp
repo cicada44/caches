@@ -6,8 +6,10 @@
 
 int ret(int key) { return key; }
 
-int main() {
-    unsigned size, elCnt;
+int main()
+{
+    unsigned size;
+    unsigned elCnt;
 
     std::cin >> size >> elCnt;
     assert(std::cin.good());
@@ -16,7 +18,8 @@ int main() {
 
     std::vector<int> insertable;
     int insertable_tmp;
-    for (size_t i = 0; i != elCnt; ++i) {
+    for (size_t i = 0; i != elCnt; ++i)
+    {
         std::cin >> insertable_tmp;
         assert(std::cin.good());
         insertable.push_back(insertable_tmp);
