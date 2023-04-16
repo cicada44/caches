@@ -109,7 +109,6 @@ TEST(Cache, Cache2Q_2) {
     ASSERT_EQ(cache.hot_cache_.empty(), true);
 }
 
-/* Returns number of hits. */
 size_t run_test(std::istream& is) {
     size_t cache_size;
     is >> cache_size;
@@ -173,7 +172,28 @@ TEST(Cache2Q, CountOfHitTest) {
     }
 }
 
-TEST(CacheIdeal, CountOfHitTest) {
+TEST(CacheIdeal, CountOfHitTestNormal) {
+    int sum = 0;
+    std::vector<int> expectedNHits{20, 6,  11, 10, 19, 8,  21, 13, 2,  1, 19, 28, 7,  16, 0,  2,  15, 16, 15, 9,  17, 19, 8,  25, 14, 7, 15, 1,  16, 5, 1, 4,  14, 11,
+                                   5,  10, 21, 18, 2,  11, 10, 0,  10, 4, 7,  4,  25, 9,  16, 0,  9,  9,  3,  15, 21, 14, 7,  3,  2,  6, 8,  3,  8,  8, 7, 27, 6,  0,
+                                   22, 4,  0,  5,  14, 23, 19, 9,  19, 0, 2,  0,  16, 4,  2,  15, 3,  22, 0,  6,  2,  1,  29, 2,  16, 0, 4,  21, 10, 0, 0, 10};
+
+    auto start = expectedNHits.begin();
+    for (int j = 0; j != 100; ++j) {
+        std::ifstream ifs;
+
+#if defined(__linux__)
+        ifs.open(std::string("test/dats/") + std::to_string(j) + std::string(".txt"));
+#elif _WIN32
+        ifs.open(std::string("test\\dats\\") + std::to_string(j) + std::string(".txt"));
+#endif
+        ASSERT_EQ(ifs.is_open(), true);
+
+        ASSERT_EQ(run_test_ideal(ifs), *start++);
+    }
+}
+
+TEST(CacheIdeal, CountOfHitTestBig) {
     int sum = 0;
     std::vector<int> expectedNHits{9999, 4995, 5, 49995, 149990, 63};
 
@@ -193,7 +213,6 @@ TEST(CacheIdeal, CountOfHitTest) {
 }
 
 int main(int argc, char** argv) {
-    // generate();
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
