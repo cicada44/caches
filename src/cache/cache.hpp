@@ -1,7 +1,5 @@
 #pragma once
 
-#include <unistd.h>
-
 #include <algorithm>
 #include <iostream>
 #include <iterator>
@@ -10,12 +8,10 @@
 #include <unordered_map>
 #include <vector>
 
-namespace caches
-{
+namespace caches {
 
 template <typename T, typename KeyT = int>
-struct cache_t
-{
+struct cache_t {
     using ListIt = typename std::list<std::pair<KeyT, T>>::iterator;
 
     size_t in_sz_, out_sz_, hot_sz_;
@@ -39,14 +35,11 @@ struct cache_t
     bool full_hot() const { return (hot_cache_.size() == hot_sz_); }
 
     template <typename F>
-    bool lookup_update_hot(KeyT key, F slow_get_page)
-    {
+    bool lookup_update_hot(KeyT key, F slow_get_page) {
         auto hit = hot_hash_.find(key);
 
-        if (hit == hot_hash_.end())
-        {
-            if (full_hot())
-            {
+        if (hit == hot_hash_.end()) {
+            if (full_hot()) {
                 hot_hash_.erase(hot_cache_.back().first);
                 hot_cache_.pop_back();
             }
@@ -61,14 +54,11 @@ struct cache_t
     }
 
     template <typename F>
-    bool lookup_update_out(KeyT key, F slow_get_page)
-    {
+    bool lookup_update_out(KeyT key, F slow_get_page) {
         auto hit = out_hash_.find(key);
 
-        if (hit == out_hash_.end())
-        {
-            if (full_out())
-            {
+        if (hit == out_hash_.end()) {
+            if (full_out()) {
                 out_hash_.erase(out_cache_.back().first);
                 out_cache_.pop_back();
             }
@@ -81,27 +71,20 @@ struct cache_t
     }
 
     template <typename F>
-    bool lookup_update(KeyT key, F slow_get_page)
-    {
-        if (in_sz_ == 0)
-        {
+    bool lookup_update(KeyT key, F slow_get_page) {
+        if (in_sz_ == 0) {
             return 0;
         }
 
         auto hit_in = in_hash_.find(key);
-        if (hit_in == in_hash_.end())
-        {
+        if (hit_in == in_hash_.end()) {
             bool hitted = false;
-            if (full_in())
-            {
+            if (full_in()) {
                 hitted = lookup_update_out(key, slow_get_page);
-                if (hitted == false)
-                {
+                if (hitted == false) {
                     in_hash_.erase(in_cache_.back().first);
                     in_cache_.pop_back();
-                }
-                else
-                {
+                } else {
                     lookup_update_hot(key, slow_get_page);
                     return hitted;
                 }
@@ -116,8 +99,7 @@ struct cache_t
 };
 
 template <typename T, typename KeyT = int>
-struct idealCache
-{
+struct idealCache {
     using vecIt = typename std::vector<std::pair<KeyT, T>>::iterator;
     using mapIt = typename std::map<KeyT, size_t>::iterator;
     using elemRange = typename std::pair<KeyT, size_t>;
@@ -135,51 +117,49 @@ struct idealCache
     bool full() const { return (cache_.size() == sz_); }
 
     template <typename F>
-    size_t lookup_update(const std::vector<KeyT>& keys, F slow_get_page)
-    {
+    void erase_farthest(const mapIt& farthest, F slow_get_page) {
+        hash_.erase(farthest->first);
+        cache_.erase(std::find(cache_.begin(), cache_.end(), std::make_pair(farthest->first, slow_get_page(farthest->first))));
+        ranges_.erase(farthest->first);
+    }
+
+    template <typename F>
+    void add_to_cache(const KeyT& key, const size_t distance, F slow_get_page) {
+        cache_.push_back(std::make_pair(key, slow_get_page(key)));
+        hash_.emplace(key, std::prev(cache_.end()));
+        ranges_.emplace(key, distance);
+    }
+
+    void decr_distances() {
+        for (auto c : ranges_) {
+            --c.second;
+        }
+    }
+
+    template <typename F>
+    size_t lookup_update(const std::vector<KeyT>& keys, F slow_get_page) {
         size_t hits = 0;
         mapIt farthest;
         size_t tmp_dist;
+        auto cmp_for_values = [](const elemRange& v1, const elemRange& v2) { return (v1.second < v2.second); };
 
-        for (auto actEl = keys.begin(); actEl != keys.end(); ++actEl)
-        {
+        for (auto actEl = keys.begin(); actEl != keys.end(); ++actEl) {
             tmp_dist = std::distance(actEl, std::find(std::next(actEl), keys.end(), *actEl));
-            if (hash_.find(*actEl) == hash_.end())
-            {
-                if (full())
-                {
-                    farthest = std::max_element(ranges_.begin(), ranges_.end(),
-                                                [](const elemRange& v1, const elemRange& v2)
-                                                {
-                                                    return (v1.second < v2.second);
-                                                });
-                    if (tmp_dist < farthest->second)
-                    {
-                        hash_.erase(farthest->first);
-                        cache_.erase(std::find(cache_.begin(), cache_.end(), std::make_pair(farthest->first, slow_get_page(farthest->first))));
-                        ranges_.erase(farthest->first);
-                        cache_.push_back(std::make_pair(*actEl, slow_get_page(*actEl)));
-                        hash_.emplace(*actEl, std::prev(cache_.end()));
-                        ranges_.emplace(*actEl, tmp_dist);
+            if (hash_.find(*actEl) == hash_.end()) {
+                if (full()) {
+                    farthest = std::max_element(ranges_.begin(), ranges_.end(), cmp_for_values);
+                    if (tmp_dist < farthest->second) {
+                        erase_farthest(farthest, slow_get_page);
+                        add_to_cache(*actEl, tmp_dist, slow_get_page);
                     }
+                } else {
+                    add_to_cache(*actEl, tmp_dist, slow_get_page);
                 }
-                else
-                {
-                    cache_.push_back(std::make_pair(*actEl, slow_get_page(*actEl)));
-                    hash_.emplace(*actEl, std::prev(cache_.end()));
-                    ranges_.emplace(*actEl, tmp_dist);
-                }
-            }
-            else
-            {
+            } else {
                 ++hits;
                 ranges_[*actEl] = tmp_dist;
             }
-
-            for (auto c : ranges_)
-            {
-                --c.second;
-            }
+            decr_distances();
         }
 
         return hits;
