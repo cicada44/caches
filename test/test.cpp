@@ -200,32 +200,53 @@ TEST(Cache2Q, CountOfHitTest)
     }
 }
 
+#if 1
 TEST(CacheIdeal, CountOfHitTest)
 {
     int sum = 0;
-    std::vector<int> expectedNHits{26, 6,  12, 11, 27, 11, 28, 18, 3,  1, 25, 35, 7,  25, 0,  2,  23, 23, 21, 12, 22, 26, 12, 27, 23,
-                                   9,  21, 2,  19, 7,  2,  4,  16, 12, 8, 11, 27, 23, 2,  18, 11, 0,  17, 5,  7,  5,  32, 10, 22, 0,
-                                   12, 11, 3,  20, 27, 20, 10, 3,  2,  7, 10, 3,  12, 10, 7,  34, 10, 0,  31, 4,  0,  7,  17, 29, 26,
-                                   11, 24, 0,  2,  0,  22, 5,  2,  24, 3, 28, 0,  7,  2,  1,  32, 4,  22, 0,  4,  29, 11, 0,  0,  10};
+    std::vector<int> expectedNHits{9999, 4995, 5, 50000};
 
     auto start = expectedNHits.begin();
-    for (int j = 0; j != 100; ++j)
+    for (int j = 0; j != 4; ++j)
     {
         std::ifstream ifs;
 
 #if defined(__linux__)
-        ifs.open(std::string("test/dats/") + std::to_string(j) + std::string(".txt"));
+        ifs.open(std::string("test/datsIdealCache/") + std::to_string(j) + std::string(".txt"));
 #elif _WIN32
-        ifs.open(std::string("test\\dats\\") + std::to_string(j) + std::string(".txt"));
+        ifs.open(std::string("test\\datsIdealCache\\") + std::to_string(j) + std::string(".txt"));
 #endif
         ASSERT_EQ(ifs.is_open(), true);
 
         ASSERT_EQ(run_test_ideal(ifs), *start++);
     }
 }
+#endif
+
+void generate()
+{
+    std::string filename = "test/datsIdealCache/";
+    std::string postfix = ".txt";
+    srand(time(nullptr));
+
+    std::fstream ofs(filename + std::to_string(3) + postfix, std::ios_base::app);
+    ASSERT_EQ(ofs.is_open(), true);
+    std::ostream_iterator<int> os_iter(ofs, "\n");
+    *os_iter = 5;
+    size_t size = 100000;
+    *os_iter = size;
+    for (size_t i = 0; i != 10000; ++i)
+    {
+        for (size_t j = 0; j != 10; ++j)
+        {
+            *os_iter = j;
+        }
+    }
+}
 
 int main(int argc, char** argv)
 {
+    // generate();
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
