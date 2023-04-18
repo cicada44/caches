@@ -1,6 +1,9 @@
 #pragma once
 
+#include <unistd.h>
+
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <iterator>
 #include <list>
@@ -24,7 +27,22 @@ struct cache_t {
     std::list<std::pair<KeyT, T>> hot_cache_;
     std::unordered_map<KeyT, ListIt> hot_hash_;
 
-    cache_t(const size_t sz) : in_sz_(sz), out_sz_(sz), hot_sz_(sz) {}
+    cache_t(const size_t sz) {
+        const size_t remainder = sz % 3;
+        if (remainder == 0) {
+            in_sz_ = sz / 3;
+            out_sz_ = sz / 3;
+            hot_sz_ = sz / 3;
+        } else if (remainder == 1) {
+            in_sz_ = (sz / 3) + 1;
+            out_sz_ = sz / 3;
+            hot_sz_ = sz / 3;
+        } else {
+            in_sz_ = (sz / 3) + 1;
+            out_sz_ = (sz / 3) + 1;
+            hot_sz_ = sz / 3;
+        }
+    }
 
     size_t size() const { return in_sz_; }
 
@@ -131,7 +149,7 @@ struct idealCache {
     }
 
     void decr_distances() {
-        for (auto c : ranges_) {
+        for (auto& c : ranges_) {
             --c.second;
         }
     }

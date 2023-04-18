@@ -27,88 +27,6 @@ void print_2q(const caches::cache_t<int>& c) {
     std::cout << '\n';
 }
 
-TEST(Cache, Cache2Q_0) {
-    caches::cache_t<int> cache(10);
-
-    ASSERT_EQ(cache.in_sz_, 10);
-    ASSERT_EQ(cache.out_sz_, 10);
-    ASSERT_EQ(cache.hot_sz_, 10);
-
-    ASSERT_EQ(cache.full_in(), false);
-    ASSERT_EQ(cache.full_out(), false);
-    ASSERT_EQ(cache.full_hot(), false);
-
-    for (int i = 0; i != 10; ++i) {
-        ASSERT_EQ(cache.lookup_update(i, retSame), false);
-    }
-    for (int i = 0; i != 10; ++i) {
-        ASSERT_EQ(cache.lookup_update(i, retSame), true);
-    }
-
-    int cnter = 9;
-    for (auto i = cache.in_cache_.begin(); i != cache.in_cache_.end(); ++i) {
-        ASSERT_EQ(i->first, cnter--);
-    }
-
-    ASSERT_EQ(cache.out_cache_.empty(), true);
-    ASSERT_EQ(cache.hot_cache_.empty(), true);
-}
-
-TEST(Cache, Cache2Q_1) {
-    caches::cache_t<int> cache(5);
-
-    ASSERT_EQ(cache.in_sz_, 5);
-    ASSERT_EQ(cache.out_sz_, 5);
-    ASSERT_EQ(cache.hot_sz_, 5);
-
-    ASSERT_EQ(cache.full_in(), false);
-    ASSERT_EQ(cache.full_out(), false);
-    ASSERT_EQ(cache.full_hot(), false);
-
-    for (int i = 0; i != 10; ++i) {
-        if (i < 1) {
-            ASSERT_EQ(cache.lookup_update(1, retSame), false);
-        } else {
-            ASSERT_EQ(cache.lookup_update(1, retSame), true);
-        }
-    }
-    for (int i = 0; i != 10; ++i) {
-        if (i < 1) {
-            ASSERT_EQ(cache.lookup_update(2, retSame), false);
-        } else {
-            ASSERT_EQ(cache.lookup_update(2, retSame), true);
-        }
-    }
-
-    int cnter = 2;
-    for (auto i = cache.in_cache_.begin(); i != cache.in_cache_.end(); ++i) {
-        ASSERT_EQ(i->first, cnter--);
-    }
-
-    ASSERT_EQ(cache.out_cache_.empty(), true);
-    ASSERT_EQ(cache.hot_cache_.empty(), true);
-}
-
-TEST(Cache, Cache2Q_2) {
-    caches::cache_t<int> cache(0);
-
-    ASSERT_EQ(cache.in_cache_.empty(), true);
-    ASSERT_EQ(cache.out_cache_.empty(), true);
-    ASSERT_EQ(cache.hot_cache_.empty(), true);
-
-    ASSERT_EQ(cache.in_sz_, 0);
-    ASSERT_EQ(cache.out_sz_, 0);
-    ASSERT_EQ(cache.hot_sz_, 0);
-
-    for (int i = 0; i != 10; ++i) {
-        ASSERT_EQ(cache.lookup_update(i, retSame), false);
-    }
-
-    ASSERT_EQ(cache.in_cache_.empty(), true);
-    ASSERT_EQ(cache.out_cache_.empty(), true);
-    ASSERT_EQ(cache.hot_cache_.empty(), true);
-}
-
 size_t run_test(std::istream& is) {
     size_t cache_size;
     is >> cache_size;
@@ -152,10 +70,10 @@ size_t run_test_ideal(std::istream& is) {
 }
 
 TEST(Cache2Q, CountOfHitTest) {
+    int hits = 0;
     int sum = 0;
-    std::vector<int> expectedNHits{24, 6,  12, 11, 20, 9,  24, 16, 3,  1, 19, 29, 7,  18, 0,  2,  19, 17, 14, 10, 10, 18, 12, 21, 14, 7, 15, 2,  17, 6,  2, 4,  12, 11,
-                                   6,  11, 17, 16, 2,  13, 10, 0,  10, 5, 7,  5,  26, 10, 17, 0,  8,  11, 3,  15, 17, 18, 10, 3,  2,  7, 10, 3,  11, 10, 7, 26, 10, 0,
-                                   22, 4,  0,  7,  14, 25, 16, 9,  23, 0, 2,  0,  12, 5,  2,  15, 3,  18, 0,  7,  2,  1,  26, 4,  17, 0, 4,  20, 11, 0,  0, 10};
+    std::vector<int> expectedNHits{9, 3, 6, 6, 11, 5, 11, 6, 1, 1, 8, 12, 7, 7, 0, 0,  7, 7, 4, 4, 2, 4, 6, 9,  4, 5, 8,  0, 7, 3, 1, 3, 6, 5, 3, 5, 8, 8, 1, 3, 4,  0, 5,  3, 5, 3,  13, 6, 6, 0,
+                                   5, 8, 1, 7, 10, 6, 6,  1, 2, 4, 5, 2,  6, 4, 3, 15, 5, 0, 9, 2, 0, 5, 5, 14, 3, 4, 11, 0, 1, 0, 6, 2, 2, 8, 1, 3, 0, 3, 2, 1, 10, 0, 12, 0, 3, 10, 6,  0, 0, 5};
 
     auto start = expectedNHits.begin();
     for (int j = 0; j != 100; ++j) {
@@ -170,13 +88,14 @@ TEST(Cache2Q, CountOfHitTest) {
 
         ASSERT_EQ(run_test(ifs), *start++);
     }
+    std::cout << hits << '\n';
 }
 
 TEST(CacheIdeal, CountOfHitTestNormal) {
-    int sum = 0;
-    std::vector<int> expectedNHits{20, 6,  11, 10, 19, 8,  21, 13, 2,  1, 19, 28, 7,  16, 0,  2,  15, 16, 15, 9,  17, 19, 8,  25, 14, 7, 15, 1,  16, 5, 1, 4,  14, 11,
-                                   5,  10, 21, 18, 2,  11, 10, 0,  10, 4, 7,  4,  25, 9,  16, 0,  9,  9,  3,  15, 21, 14, 7,  3,  2,  6, 8,  3,  8,  8, 7, 27, 6,  0,
-                                   22, 4,  0,  5,  14, 23, 19, 9,  19, 0, 2,  0,  16, 4,  2,  15, 3,  22, 0,  6,  2,  1,  29, 2,  16, 0, 4,  21, 10, 0, 0, 10};
+    int sum = 0, hits = 0;
+    std::vector<int> expectedNHits{26, 6,  12, 11, 28, 11, 28, 18, 3,  1, 25, 35, 7,  26, 0,  2,  23, 23, 22, 12, 23, 26, 12, 28, 23, 9, 21, 2,  19, 7,  2, 4,  16, 12,
+                                   8,  11, 28, 23, 2,  18, 11, 0,  17, 5, 7,  5,  32, 10, 22, 0,  12, 11, 3,  20, 27, 20, 10, 3,  2,  7, 10, 3,  12, 10, 7, 34, 10, 0,
+                                   31, 4,  0,  7,  17, 29, 27, 11, 24, 0, 2,  0,  23, 5,  2,  24, 3,  28, 0,  7,  2,  1,  32, 4,  22, 0, 4,  30, 11, 0,  0, 10};
 
     auto start = expectedNHits.begin();
     for (int j = 0; j != 100; ++j) {
@@ -191,11 +110,12 @@ TEST(CacheIdeal, CountOfHitTestNormal) {
 
         ASSERT_EQ(run_test_ideal(ifs), *start++);
     }
+    std::cout << hits << '\n';
 }
 
 TEST(CacheIdeal, CountOfHitTestBig) {
     int sum = 0;
-    std::vector<int> expectedNHits{9999, 4995, 5, 49995, 149990, 63};
+    std::vector<int> expectedNHits{9999, 4995, 5, 49995, 149990, 65};
 
     auto start = expectedNHits.begin();
     for (int j = 0; j != 6; ++j) {

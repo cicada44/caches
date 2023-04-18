@@ -6,8 +6,7 @@
 
 int ret(int key) { return key; }
 
-int main()
-{
+int main() {
     unsigned size;
     unsigned elCnt;
 
@@ -18,8 +17,7 @@ int main()
 
     int insertable;
     size_t hits = 0;
-    for (size_t i = 0; i != elCnt; ++i)
-    {
+    for (size_t i = 0; i != elCnt; ++i) {
         std::cin >> insertable;
         assert(std::cin.good());
         hits += static_cast<size_t>(cache.lookup_update(insertable, ret));

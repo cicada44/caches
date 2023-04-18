@@ -366,3 +366,4 @@ FodyWeavers.xsd
 build/
 .vscode/
 .clang-format
+buildAndComp.sh
