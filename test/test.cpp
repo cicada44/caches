@@ -9,23 +9,23 @@
 
 int retSame(int key) { return key; }
 
-void print_2q(const caches::cache_t<int>& c) {
-    std::cout << "IN\n";
-    for (auto i = c.in_cache_.begin(); i != c.in_cache_.end(); ++i) {
-        std::cout << i->first << ' ';
-    }
-    std::cout << '\n';
-    std::cout << "OUT\n";
-    for (auto i = c.out_cache_.begin(); i != c.out_cache_.end(); ++i) {
-        std::cout << i->first << ' ';
-    }
-    std::cout << '\n';
-    std::cout << "HOT\n";
-    for (auto i = c.hot_cache_.begin(); i != c.hot_cache_.end(); ++i) {
-        std::cout << i->first << ' ';
-    }
-    std::cout << '\n';
-}
+// void print_2q(const caches::cache_t<int>& c) {
+//     std::cout << "IN\n";
+//     for (auto i = c.in_cache_.begin(); i != c.in_cache_.end(); ++i) {
+//         std::cout << i->first << ' ';
+//     }
+//     std::cout << '\n';
+//     std::cout << "OUT\n";
+//     for (auto i = c.out_cache_.begin(); i != c.out_cache_.end(); ++i) {
+//         std::cout << i->first << ' ';
+//     }
+//     std::cout << '\n';
+//     std::cout << "HOT\n";
+//     for (auto i = c.hot_cache_.begin(); i != c.hot_cache_.end(); ++i) {
+//         std::cout << i->first << ' ';
+//     }
+//     std::cout << '\n';
+// }
 
 size_t run_test(std::istream& is) {
     size_t cache_size;
@@ -85,7 +85,7 @@ TEST(Cache2Q, CountOfHitTest) {
 }
 
 TEST(CacheIdeal, CountOfHitTest) {
-    for (int j = 3; j != 4; ++j) {
+    for (int j = 0; j != 15; ++j) {
         std::ifstream ifs;
 
 #if defined(__linux__)
@@ -93,7 +93,11 @@ TEST(CacheIdeal, CountOfHitTest) {
 #elif _WIN32
         ifs.open(std::string("test\\dats\\") + std::to_string(j) + std::string(".txt"));
 #endif
-        ASSERT_EQ(ifs.is_open(), true);
+        // ASSERT_EQ(ifs.is_open(), true);
+
+        if (!ifs.is_open()) {
+            continue;
+        }
 
         std::cout << run_test_ideal(ifs) << '\n';
 

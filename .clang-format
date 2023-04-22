@@ -19,6 +19,7 @@ BraceWrapping:
   SplitEmptyRecord:     false
   SplitEmptyNamespace:  false
   IndentBraces:         false
+AccessModifierOffset: -4
 #   SplitClosingBrace:    true
 #   ElseIf:               true
   # Set the lambda brace wrapping style.

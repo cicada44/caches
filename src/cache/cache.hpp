@@ -14,19 +14,10 @@
 namespace caches {
 
 template <typename T, typename KeyT = int>
-struct cache_t {
+class cache_t {
     using ListIt = typename std::list<std::pair<KeyT, T>>::iterator;
 
-    size_t in_sz_, out_sz_, hot_sz_;
-    std::list<std::pair<KeyT, T>> in_cache_;
-    std::unordered_map<KeyT, ListIt> in_hash_;
-
-    std::list<std::pair<KeyT, T>> out_cache_;
-    std::unordered_map<KeyT, ListIt> out_hash_;
-
-    std::list<std::pair<KeyT, T>> hot_cache_;
-    std::unordered_map<KeyT, ListIt> hot_hash_;
-
+public:
     cache_t(const size_t sz) {
         const size_t remainder = sz % 3;
         if (remainder == 0) {
@@ -114,78 +105,87 @@ struct cache_t {
 
         return true;
     }
+
+private:
+    size_t in_sz_, out_sz_, hot_sz_;
+    std::list<std::pair<KeyT, T>> in_cache_;
+    std::unordered_map<KeyT, ListIt> in_hash_;
+
+    std::list<std::pair<KeyT, T>> out_cache_;
+    std::unordered_map<KeyT, ListIt> out_hash_;
+
+    std::list<std::pair<KeyT, T>> hot_cache_;
+    std::unordered_map<KeyT, ListIt> hot_hash_;
 };
 
 template <typename T, typename KeyT = int>
-struct idealCache {
-    using VecIt = typename std::vector<std::pair<KeyT, T>>::iterator;
+class idealCache {
+    using vecIt = typename std::vector<std::pair<KeyT, T>>::iterator;
+    using mapIt = typename std::unordered_map<KeyT, size_t>::iterator;
+    using elemRange = typename std::pair<KeyT, size_t>;
 
-    std::vector<std::pair<KeyT, T>> cache_;
-    std::unordered_map<KeyT, VecIt> hash_;
-    std::pair<VecIt, size_t> farthest_, pre_farthest_;
-
-    size_t sz_;
-
+public:
     idealCache(const size_t sz) : sz_(sz) {}
 
     size_t size() const { return sz_; }
 
     bool full() const { return (cache_.size() == sz_); }
 
-    void print_cache() {
-        std::cout << "CACHE\n";
-        for (const auto& c : cache_) {
-            std::cout << c.first << ' ';
+    template <typename F>
+    void erase_farthest(const mapIt& farthest, F slow_get_page) {
+        hash_.erase(farthest->first);
+        cache_.erase(std::find(cache_.begin(), cache_.end(), std::make_pair(farthest->first, slow_get_page(farthest->first))));
+        ranges_.erase(farthest->first);
+    }
+
+    template <typename F>
+    void add_to_cache(const KeyT& key, const size_t distance, F slow_get_page) {
+        cache_.push_back(std::make_pair(key, slow_get_page(key)));
+        hash_.emplace(key, std::prev(cache_.end()));
+        ranges_.emplace(key, distance);
+    }
+
+    void decr_distances() {
+        for (auto& c : ranges_) {
+            --c.second;
         }
-        std::cout << "\n\n";
     }
 
     template <typename F>
     size_t lookup_update(const std::vector<KeyT>& keys, F slow_get_page) {
         size_t hits = 0;
-        size_t dist_next_el = 0;
+        mapIt farthest;
+        size_t tmp_dist;
+        auto cmp_for_values = [](const elemRange& v1, const elemRange& v2) { return (v1.second < v2.second); };
 
-        for (auto actualEl = keys.begin(); actualEl != keys.end(); ++actualEl) {
-            dist_next_el = std::distance(actualEl, std::find(std::next(actualEl), keys.end(), *actualEl));
-            if (hash_.find(*actualEl) == hash_.end()) {
+        for (auto actEl = keys.begin(); actEl != keys.end(); ++actEl) {
+            tmp_dist = std::distance(actEl, std::find(std::next(actEl), keys.end(), *actEl));
+            if (hash_.find(*actEl) == hash_.end()) {
                 if (full()) {
-                    if (dist_next_el < farthest_.second) {
-                        cache_.erase(farthest_.first);
-                        hash_.erase(farthest_.first->first);
-                        cache_.push_back(std::make_pair(*actualEl, slow_get_page(*actualEl)));
-                        hash_.emplace(*actualEl, std::prev(cache_.end()));
-                        farthest_ = pre_farthest_;
+                    farthest = std::max_element(ranges_.begin(), ranges_.end(), cmp_for_values);
+                    if (tmp_dist < farthest->second) {
+                        erase_farthest(farthest, slow_get_page);
+                        add_to_cache(*actEl, tmp_dist, slow_get_page);
                     }
                 } else {
-                    cache_.push_back(std::make_pair(*actualEl, slow_get_page(*actualEl)));
-                    hash_.emplace(*actualEl, std::prev(cache_.end()));
-                    if (dist_next_el > farthest_.second) {
-                        pre_farthest_ = farthest_;
-                        farthest_ = std::make_pair(std::prev(cache_.end()), dist_next_el);
-                    }
+                    add_to_cache(*actEl, tmp_dist, slow_get_page);
                 }
             } else {
-                std::cout << "HIT INTO: " << *actualEl << '\n';
                 ++hits;
-                if (dist_next_el > farthest_.second) {
-                    // pre_farthest_ = farthest_;
-                    farthest_.second = dist_next_el;
-                } else {
-                    farthest_ = pre_farthest_;
-                }
+                ranges_[*actEl] = tmp_dist;
             }
-            std::cout << "cache size - " << cache_.size() << '\n';
-            print_cache();
-            std::cout << "HITS: " << hits << '\n';
-            std::cout << "FARTHEST: " << farthest_.first->first << '\n';
-            std::cout << "PREFARTHEST: " << pre_farthest_.first->first << '\n';
-            sleep(1);
-            system("clear");
-            --farthest_.second;
+            decr_distances();
         }
 
         return hits;
     }
+
+private:
+    std::vector<std::pair<KeyT, T>> cache_;
+    std::unordered_map<KeyT, vecIt> hash_;
+    std::unordered_map<KeyT, size_t> ranges_;
+
+    size_t sz_;
 };
 
 }  // namespace caches
