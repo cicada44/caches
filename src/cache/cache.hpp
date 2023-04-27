@@ -120,8 +120,8 @@ private:
 
 template <typename T, typename KeyT = int>
 class idealCache {
-    using vecIt = typename std::vector<std::pair<KeyT, T>>::iterator;
-    using mapIt = typename std::unordered_map<KeyT, size_t>::iterator;
+    using ListIt = typename std::list<std::pair<KeyT, T>>::iterator;
+    using MapIt = typename std::unordered_map<KeyT, size_t>::iterator;
     using elemRange = typename std::pair<KeyT, size_t>;
 
 public:
@@ -131,31 +131,31 @@ public:
 
     bool full() const { return (cache_.size() == sz_); }
 
-    template <typename F>
-    void erase_farthest(const mapIt& farthest, F slow_get_page) {
+    void erase_farthest(MapIt& farthest) {
+        cache_.erase(hash_.at(farthest->first));
         hash_.erase(farthest->first);
-        cache_.erase(std::find(cache_.begin(), cache_.end(), std::make_pair(farthest->first, slow_get_page(farthest->first))));
         ranges_.erase(farthest->first);
     }
 
     template <typename F>
     void add_to_cache(const KeyT& key, const size_t distance, F slow_get_page) {
-        cache_.push_back(std::make_pair(key, slow_get_page(key)));
-        hash_.emplace(key, std::prev(cache_.end()));
+        cache_.emplace_front(std::make_pair(key, slow_get_page(key)));
+        hash_.emplace(key, cache_.begin());
         ranges_.emplace(key, distance);
     }
 
-    void decr_distances() {
+    void decr_distances(size_t value) {
         for (auto& c : ranges_) {
-            --c.second;
+            c.second -= value;
         }
     }
 
     template <typename F>
     size_t lookup_update(const std::vector<KeyT>& keys, F slow_get_page) {
         size_t hits = 0;
-        mapIt farthest;
+        MapIt farthest;
         size_t tmp_dist;
+        size_t dist_accum = 0;
         auto cmp_for_values = [](const elemRange& v1, const elemRange& v2) { return (v1.second < v2.second); };
 
         for (auto actEl = keys.begin(); actEl != keys.end(); ++actEl) {
@@ -164,25 +164,31 @@ public:
                 if (full()) {
                     farthest = std::max_element(ranges_.begin(), ranges_.end(), cmp_for_values);
                     if (tmp_dist < farthest->second) {
-                        erase_farthest(farthest, slow_get_page);
+                        decr_distances(dist_accum);
+                        dist_accum = 0;
+                        erase_farthest(farthest);
                         add_to_cache(*actEl, tmp_dist, slow_get_page);
                     }
                 } else {
+                    decr_distances(dist_accum);
+                    dist_accum = 0;
                     add_to_cache(*actEl, tmp_dist, slow_get_page);
                 }
             } else {
                 ++hits;
+                decr_distances(dist_accum);
+                dist_accum = 0;
                 ranges_[*actEl] = tmp_dist;
             }
-            decr_distances();
+            ++dist_accum;
         }
 
         return hits;
     }
 
 private:
-    std::vector<std::pair<KeyT, T>> cache_;
-    std::unordered_map<KeyT, vecIt> hash_;
+    std::list<std::pair<KeyT, T>> cache_;
+    std::unordered_map<KeyT, ListIt> hash_;
     std::unordered_map<KeyT, size_t> ranges_;
 
     size_t sz_;

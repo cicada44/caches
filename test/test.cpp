@@ -100,8 +100,6 @@ TEST(CacheIdeal, CountOfHitTest) {
         }
 
         std::cout << run_test_ideal(ifs) << '\n';
-
-        ifs.close();
     }
 }
 

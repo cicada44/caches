@@ -2,7 +2,7 @@ function(set_compile_options target_name)
     if (MSVC)
         target_compile_options(${target_name} PRIVATE /W4 /WX)
     else()
-        target_compile_options(${target_name} PRIVATE -Ofast -march=native -Wall -Wextra -Werror -pedantic)
+        target_compile_options(${target_name} PRIVATE -g -Ofast -march=native -Wall -Wextra -Werror -pedantic -pg)
     endif()
     
     set_target_properties(
