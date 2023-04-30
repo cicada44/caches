@@ -1,11 +1,6 @@
 #pragma once
 
-#include <unistd.h>
-
 #include <algorithm>
-#include <cmath>
-#include <iostream>
-#include <iterator>
 #include <list>
 #include <map>
 #include <unordered_map>
@@ -153,18 +148,18 @@ public:
         size_t tmp_dist = 0;
         for (const auto& c : hash_) {
             tmp_dist = std::distance(actual, std::find(std::next(actual), end, c.first));
-            // if (c.first == 5) {
-            //     std::cout << "5: " << tmp_dist << '\n';
-            // }
             if (tmp_dist > farthest.second) {
                 farthest.first = c.first;
                 farthest.second = tmp_dist;
             }
         }
-
-        // std::cout << "FARTHEST: " << farthest.first << '\n';
-
         return farthest;
+    }
+
+    template <typename F>
+    void update(elemRange& farthest, const KeyT& new_elem, F slow_get_page) {
+        erase_farthest(farthest);
+        add_to_cache(new_elem, slow_get_page);
     }
 
     template <typename F>
@@ -172,18 +167,13 @@ public:
         size_t hits = 0;
         elemRange farthest;
         size_t tmp_dist;
-        // auto cmp_for_values = [](const elemRange& v1, const elemRange& v2) { return (v1.second < v2.second); };
 
         for (auto actEl = keys.begin(); actEl != keys.end(); ++actEl) {
             tmp_dist = std::distance(actEl, std::find(std::next(actEl), keys.end(), *actEl));
             if (hash_.find(*actEl) == hash_.end()) {
                 if (full()) {
                     farthest = get_farthest(actEl, keys.end());
-                    if (tmp_dist < farthest.second) {
-                        // farthest = get_farthest(actEl, keys.end());
-                        erase_farthest(farthest);
-                        add_to_cache(*actEl, slow_get_page);
-                    }
+                    if (tmp_dist < farthest.second) update(farthest, *actEl, slow_get_page);
                 } else {
                     add_to_cache(*actEl, slow_get_page);
                     if (tmp_dist > farthest.second) {
@@ -198,11 +188,6 @@ public:
                     farthest.second = tmp_dist;
                 }
             }
-
-            // for (const auto& c : cache_) {
-            //     std::cout << c.first << ' ';
-            // }
-            // std::cout << '\n';
         }
 
         return hits;

@@ -2,30 +2,10 @@
 
 #include <algorithm>
 #include <fstream>
-#include <iostream>
-#include <numeric>
 
 #include "../src/cache/cache.hpp"
 
 int retSame(int key) { return key; }
-
-// void print_2q(const caches::cache_t<int>& c) {
-//     std::cout << "IN\n";
-//     for (auto i = c.in_cache_.begin(); i != c.in_cache_.end(); ++i) {
-//         std::cout << i->first << ' ';
-//     }
-//     std::cout << '\n';
-//     std::cout << "OUT\n";
-//     for (auto i = c.out_cache_.begin(); i != c.out_cache_.end(); ++i) {
-//         std::cout << i->first << ' ';
-//     }
-//     std::cout << '\n';
-//     std::cout << "HOT\n";
-//     for (auto i = c.hot_cache_.begin(); i != c.hot_cache_.end(); ++i) {
-//         std::cout << i->first << ' ';
-//     }
-//     std::cout << '\n';
-// }
 
 size_t run_test(std::istream& is) {
     size_t cache_size;
@@ -70,40 +50,47 @@ size_t run_test_ideal(std::istream& is) {
 }
 
 TEST(Cache2Q, CountOfHitTest) {
-    for (int j = 0; j != 15; ++j) {
+    std::vector<int> expected{0, 4, 3, 31, 89999};
+    auto expected_elem = expected.begin();
+
+    for (int j = 0; j != 5; ++j) {
         std::ifstream ifs;
 
 #if defined(__linux__)
         ifs.open(std::string("test/dats/") + std::to_string(j) + std::string(".dat"));
 #elif _WIN32
-        ifs.open(std::string("test\\dats\\") + std::to_string(j) + std::string(".txt"));
+        ifs.open(std::string("test\\dats\\") + std::to_string(j) + std::string(".dat"));
 #endif
-        // ASSERT_EQ(ifs.is_open(), true);
+        ASSERT_EQ(ifs.is_open(), true);
 
-        std::cout << run_test(ifs) << '\n';
+        ASSERT_EQ(run_test(ifs), *expected_elem++);
+
+        ifs.close();
     }
 }
 
 TEST(CacheIdeal, CountOfHitTest) {
-    for (int j = 0; j != 15; ++j) {
+    std::vector<int> expected{0, 4, 7, 65, 89999, 4117, 89999, 99900, 990};
+    auto expected_elem = expected.begin();
+
+    for (int j = 0; j != 9; ++j) {
         std::ifstream ifs;
 
 #if defined(__linux__)
         ifs.open(std::string("test/dats/") + std::to_string(j) + std::string(".dat"));
 #elif _WIN32
-        ifs.open(std::string("test\\dats\\") + std::to_string(j) + std::string(".txt"));
+        ifs.open(std::string("test\\dats\\") + std::to_string(j) + std::string(".dat"));
 #endif
-        // ASSERT_EQ(ifs.is_open(), true);
+        ASSERT_EQ(ifs.is_open(), true);
 
-        if (!ifs.is_open()) {
-            continue;
-        }
+        ASSERT_EQ(run_test_ideal(ifs), *expected_elem++);
 
-        std::cout << run_test_ideal(ifs) << '\n';
+        ifs.close();
     }
 }
 
 int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
+
     return RUN_ALL_TESTS();
 }

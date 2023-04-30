@@ -1,5 +1,4 @@
 #include <cassert>
-#include <fstream>
 #include <iostream>
 
 #include "../cache/cache.hpp"
