@@ -4,7 +4,7 @@
 
     cmake -S . -B <build_dir>
 
-## Guild
+## Build
 
     cmake --build <build_dir>
 
