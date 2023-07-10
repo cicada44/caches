@@ -6,42 +6,43 @@
 
 #pragma once
 
-#include <iostream>
-#include <iterator>
+#include <algorithm>
 #include <list>
-#include <queue>
+#include <map>
 #include <unordered_map>
 #include <vector>
 
 namespace caches {
 
 template <typename T, typename KeyT = int>
-struct cache_t {
+class cache_t {
     using ListIt = typename std::list<std::pair<KeyT, T>>::iterator;
 
-    size_t in_sz_, out_sz_, hot_sz_;
-    std::list<std::pair<KeyT, T>> in_cache_;
-    std::unordered_map<KeyT, ListIt> in_hash_;
+public:
+    cache_t(const size_t sz) {
+        const size_t remainder = sz % 3;
+        if (remainder == 0) {
+            in_sz_ = sz / 3;
+            out_sz_ = sz / 3;
+            hot_sz_ = sz / 3;
+        } else if (remainder == 1) {
+            in_sz_ = (sz / 3) + 1;
+            out_sz_ = sz / 3;
+            hot_sz_ = sz / 3;
+        } else {
+            in_sz_ = (sz / 3) + 1;
+            out_sz_ = (sz / 3) + 1;
+            hot_sz_ = sz / 3;
+        }
+    }
 
-    std::list<std::pair<KeyT, T>> out_cache_;
-    std::unordered_map<KeyT, ListIt> out_hash_;
-
-    std::list<std::pair<KeyT, T>> hot_cache_;
-    std::unordered_map<KeyT, ListIt> hot_hash_;
-
-    cache_t(const size_t sz) : in_sz_(sz), out_sz_(sz), hot_sz_(sz) {}
-
-    /* Returns size of cache. */
     size_t size() const { return in_sz_; }
 
-    /* Returns true if in-cache is full. */
-    bool full_in() const { return (in_cache_.size() == in_sz_); }
+    bool full_in() const { return (in_cache_.size() == in_sz_ && in_sz_ != 0); }
 
-    /* Returns true if out-cache is full. */
-    bool full_out() const { return (out_cache_.size() == out_sz_); }
+    bool full_out() const { return (out_cache_.size() == out_sz_ && out_sz_ != 0); }
 
-    /* Returns true if hot-cache is full. */
-    bool full_hot() const { return (hot_cache_.size() == hot_sz_); }
+    bool full_hot() const { return (hot_cache_.size() == hot_sz_ && hot_sz_ != 0); }
 
     /* Updates hot-cache. */
     template <typename F>
@@ -59,9 +60,7 @@ struct cache_t {
         }
 
         auto eltit = hit->second;
-        if (eltit != hot_cache_.begin())
-            hot_cache_.splice(hot_cache_.begin(), hot_cache_, eltit,
-                              std::next(eltit));
+        if (eltit != hot_cache_.begin()) hot_cache_.splice(hot_cache_.begin(), hot_cache_, eltit, std::next(eltit));
         return true;
     }
 
@@ -75,8 +74,7 @@ struct cache_t {
                 out_hash_.erase(out_cache_.back().first);
                 out_cache_.pop_back();
             }
-            out_cache_.emplace_front(in_cache_.back().first,
-                                     slow_get_page(in_cache_.back().first));
+            out_cache_.emplace_front(in_cache_.back().first, slow_get_page(in_cache_.back().first));
             out_hash_.emplace(in_cache_.back().first, in_cache_.end());
             return false;
         }
@@ -111,6 +109,17 @@ struct cache_t {
 
         return true;
     }
+
+private:
+    size_t in_sz_, out_sz_, hot_sz_;
+    std::list<std::pair<KeyT, T>> in_cache_;
+    std::unordered_map<KeyT, ListIt> in_hash_;
+
+    std::list<std::pair<KeyT, T>> out_cache_;
+    std::unordered_map<KeyT, ListIt> out_hash_;
+
+    std::list<std::pair<KeyT, T>> hot_cache_;
+    std::unordered_map<KeyT, ListIt> hot_hash_;
 };
 
 template <typename T, typename KeyT = int>
@@ -122,41 +131,32 @@ class idealCache {
 public:
     idealCache(const size_t sz) : sz_(sz) {}
 
-    /* Returns size of created cache. */
     size_t size() const { return sz_; }
 
-    /* Returns true if cache list is full. */
     bool full() const { return (cache_.size() == sz_); }
 
-    /* Removes farthest (predicted) element in cacheline. */
     void erase_farthest(elemRange& farthest) {
         cache_.erase(hash_.at(farthest.first));
         hash_.erase(farthest.first);
     }
 
-    /* Adds element into cache. */
     template <typename F>
     void add_to_cache(const KeyT& key, F slow_get_page) {
         cache_.emplace_front(std::make_pair(key, slow_get_page(key)));
         hash_.emplace(key, cache_.begin());
     }
 
-    /* Decrease distances for next cache elements. */
     void decr_distances(size_t value) {
         for (auto& c : ranges_) {
             c.second -= value;
         }
     }
 
-    /* Detects most far element in cache. */
-    elemRange get_farthest(
-        const typename std::vector<KeyT>::const_iterator& actual,
-        const typename std::vector<KeyT>::const_iterator& end) {
+    elemRange get_farthest(const typename std::vector<KeyT>::const_iterator& actual, const typename std::vector<KeyT>::const_iterator& end) {
         elemRange farthest;
         size_t tmp_dist = 0;
         for (const auto& c : hash_) {
-            tmp_dist = std::distance(
-                actual, std::find(std::next(actual), end, c.first));
+            tmp_dist = std::distance(actual, std::find(std::next(actual), end, c.first));
             if (tmp_dist > farthest.second) {
                 farthest.first = c.first;
                 farthest.second = tmp_dist;
@@ -165,14 +165,12 @@ public:
         return farthest;
     }
 
-    /* Removes farthest element and adds new into cache. */
     template <typename F>
     void update(elemRange& farthest, const KeyT& new_elem, F slow_get_page) {
         erase_farthest(farthest);
         add_to_cache(new_elem, slow_get_page);
     }
 
-    /* Adds keys into cache line. */
     template <typename F>
     size_t lookup_update(const std::vector<KeyT>& keys, F slow_get_page) {
         size_t hits = 0;
@@ -180,13 +178,11 @@ public:
         size_t tmp_dist;
 
         for (auto actEl = keys.begin(); actEl != keys.end(); ++actEl) {
-            tmp_dist = std::distance(
-                actEl, std::find(std::next(actEl), keys.end(), *actEl));
+            tmp_dist = std::distance(actEl, std::find(std::next(actEl), keys.end(), *actEl));
             if (hash_.find(*actEl) == hash_.end()) {
                 if (full()) {
                     farthest = get_farthest(actEl, keys.end());
-                    if (tmp_dist < farthest.second)
-                        update(farthest, *actEl, slow_get_page);
+                    if (tmp_dist < farthest.second) update(farthest, *actEl, slow_get_page);
                 } else {
                     add_to_cache(*actEl, slow_get_page);
                     if (tmp_dist > farthest.second) {

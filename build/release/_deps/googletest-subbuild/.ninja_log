@@ -1,0 +1,21 @@
+# ninja log v5
+0	54	1688198178761755539	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-mkdir	11638c999ad99210
+0	54	1688198178761755539	/home/cicada44/cicada-main/edu/minor-projects/cache/build/release/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-mkdir	11638c999ad99210
+54	12487	1688198191193753710	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-download	c8f6c729d398559b
+54	12487	1688198191193753710	/home/cicada44/cicada-main/edu/minor-projects/cache/build/release/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-download	c8f6c729d398559b
+12487	12501	1688198191209753707	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-update	75027fc2eeeb49bd
+12487	12501	1688198191209753707	/home/cicada44/cicada-main/edu/minor-projects/cache/build/release/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-update	75027fc2eeeb49bd
+12501	12514	1688198191221753704	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-patch	58cda52024d921dd
+12501	12514	1688198191221753704	/home/cicada44/cicada-main/edu/minor-projects/cache/build/release/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-patch	58cda52024d921dd
+12514	12535	1688198191241753701	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-configure	308a6b771c7c64b0
+12514	12535	1688198191241753701	/home/cicada44/cicada-main/edu/minor-projects/cache/build/release/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-configure	308a6b771c7c64b0
+12536	12549	1688198191257753698	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-build	7055f75f060fca1e
+12536	12549	1688198191257753698	/home/cicada44/cicada-main/edu/minor-projects/cache/build/release/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-build	7055f75f060fca1e
+12549	12562	1688198191269753696	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-install	d68553af151134eb
+12549	12562	1688198191269753696	/home/cicada44/cicada-main/edu/minor-projects/cache/build/release/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-install	d68553af151134eb
+12562	12574	1688198191281753693	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-test	48a3f18243c768d0
+12562	12574	1688198191281753693	/home/cicada44/cicada-main/edu/minor-projects/cache/build/release/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-test	48a3f18243c768d0
+12574	12592	1688198191301753690	CMakeFiles/googletest-populate-complete	d27059d10437235d
+12574	12592	1688198191301753690	googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-done	d27059d10437235d
+12574	12592	1688198191301753690	/home/cicada44/cicada-main/edu/minor-projects/cache/build/release/_deps/googletest-subbuild/CMakeFiles/googletest-populate-complete	d27059d10437235d
+12574	12592	1688198191301753690	/home/cicada44/cicada-main/edu/minor-projects/cache/build/release/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-done	d27059d10437235d

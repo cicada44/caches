@@ -1,5 +1,4 @@
-#include "../cache/cache.hpp"
-
+#include <cache/cache.hpp>
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -10,10 +9,11 @@ int main() {
     unsigned size, elCnt;
     std::vector<int> elems;
 
-    std::cin >> size >> elCnt;
-    assert(std::cin.good());
+    size_t num_elements;
+    std::cin >> num_elements;
+    caches::idealCache<int> cache(num_elements);
 
-    caches::idealCache<int> cache(size);
+    std::vector<int> elems;
 
     int insertable;
     size_t hits = 0;
@@ -22,8 +22,5 @@ int main() {
         assert(std::cin.good());
         elems.push_back(insertable);
     }
-
-    hits = cache.lookup_update(elems, ret);
-
-    std::cout << hits << '\n';
+    std::cout << cache.lookup_update(elems, ret);
 }

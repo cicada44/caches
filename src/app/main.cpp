@@ -1,16 +1,13 @@
-#include "../cache/cache.hpp"
-
 #include <cassert>
 #include <iostream>
 
-int ret(int key)
-{
-    return key;
-}
+#include "../cache/cache.hpp"
 
-int main()
-{
-    unsigned size, elCnt;
+int ret(int key) { return key; }
+
+int main() {
+    unsigned size;
+    unsigned elCnt;
 
     std::cin >> size >> elCnt;
     assert(std::cin.good());
@@ -22,7 +19,7 @@ int main()
     for (size_t i = 0; i != elCnt; ++i) {
         std::cin >> insertable;
         assert(std::cin.good());
-        hits += cache.lookup_update(insertable, ret);
+        hits += static_cast<size_t>(cache.lookup_update(insertable, ret));
     }
 
     std::cout << hits << '\n';

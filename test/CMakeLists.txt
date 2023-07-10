@@ -1,5 +1,3 @@
-enable_testing()
-
 include(GoogleTest)
 
 add_executable(
@@ -17,5 +15,3 @@ target_include_directories(
     PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}
 )
-
-gtest_discover_tests(test)

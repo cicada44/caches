@@ -1,0 +1,27 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+IndentWidth: 4
+ColumnLimit: 200
+BraceWrapping:
+  AfterFunction:        true
+  AfterClass:           true
+  AfterControlStatement: true
+  AfterEnum:            true
+  AfterNamespace:       true
+  AfterObjCDeclaration: true
+  AfterStruct:          true
+  AfterUnion:           true
+  AfterExternBlock:     true
+  BeforeCatch:          true
+  BeforeElse:           true
+  SplitEmptyFunction:   false
+  SplitEmptyRecord:     false
+  SplitEmptyNamespace:  false
+  IndentBraces:         false
+AccessModifierOffset: -4
+#   SplitClosingBrace:    true
+#   ElseIf:               true
+  # Set the lambda brace wrapping style.
+#   AfterLambda:          true
+...
