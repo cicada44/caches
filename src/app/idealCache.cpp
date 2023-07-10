@@ -1,22 +1,21 @@
-#include <cache/cache.hpp>
 #include <cassert>
 #include <iostream>
 #include <vector>
 
+#include "../cache/cache.hpp"
+
 int ret(int key) { return key; }
 
 int main() {
-    unsigned size, elCnt;
+    unsigned size = 0;
+    unsigned elCnt = 0;
     std::vector<int> elems;
 
-    size_t num_elements;
-    std::cin >> num_elements;
-    caches::idealCache<int> cache(num_elements);
+    std::cin >> size;
+    caches::idealCache<int> cache(size);
 
-    std::vector<int> elems;
-
+    std::cin >> elCnt;
     int insertable;
-    size_t hits = 0;
     for (size_t i = 0; i != elCnt; ++i) {
         std::cin >> insertable;
         assert(std::cin.good());
