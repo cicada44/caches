@@ -2,15 +2,13 @@
 
 #include <cassert>
 #include <iostream>
+#include <vector>
 
-int ret(int key)
-{
-    return key;
-}
+int ret(int key) { return key; }
 
-int main()
-{
+int main() {
     unsigned size, elCnt;
+    std::vector<int> elems;
 
     std::cin >> size >> elCnt;
     assert(std::cin.good());
@@ -22,8 +20,10 @@ int main()
     for (size_t i = 0; i != elCnt; ++i) {
         std::cin >> insertable;
         assert(std::cin.good());
-        hits += cache.lookup_update(insertable, ret);
+        elems.push_back(insertable);
     }
+
+    hits = cache.lookup_update(elems, ret);
 
     std::cout << hits << '\n';
 }

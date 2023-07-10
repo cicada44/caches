@@ -1,35 +1,43 @@
-# 2Queue cache implementation on C++
+# 2Q cache implementation
 
-## Generate
+This project is an implementation of the 2Q cache algorithm in C++. The 2Q cache algorithm is a hybrid caching algorithm that combines the advantages of both LRU (Least Recently Used) and LFU (Least Frequently Used) cache algorithms.
 
-    cmake -S . -B <build_dir>
+## Files
 
-## Guild
+- [Cache classes](./src/cache/cache.hpp)
+- [Main for 2Q cache](./src/app/main.cpp)
+- [Main for ideal cache](./src/app/idealCache.cpp)
 
-    cmake --build <build_dir>
+## Usage
 
-<hr>
+To compile the all files, execute the following command:
 
-# Binaries
+     cmake --preset release
+     cmake --build --preset release
 
-- ## <build_dir>/bin/app
-- ## <build_dir>/bin/test
-- ## <build_dir>/bin/idealCache
+To run the [tests](./test/test/test.cpp), execute the following command:
 
-<hr>
+     ./build/release/bin/test
 
-# IO data format
+To run the [main for 2Q](./src/app/main.cpp), execute the following command:
 
-## **Input**:
-### <cache_size> <n_elems> <elem1, ...>
-<br>
+     ./build/release/bin/app
 
-## **Output**:
-### <n_hits>
-<br>
 
-## **Example**:
-### Input
-### 5 10 0 1 2 3 4 0 1 2 3 4
-### Output
-### 5
+To run the [main for ideal cache](./src/app/idealCache.cpp), execute the following command:
+
+     ./build/release/bin/idealCache
+
+## I/O data format:
+
+    <nElems> <elems>
+    hits
+
+Example:
+
+    Input:
+    5
+    1 2 3 4 5
+
+    Output:
+    0
